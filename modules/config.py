@@ -36,7 +36,7 @@ class Config:
 
     # ── YouTube Upload ────────────────────────────────────────────────────
     YOUTUBE_CLIENT_SECRET_FILE: str = os.getenv("YOUTUBE_CLIENT_SECRET_FILE", "client_secret.json")
-    YOUTUBE_DEFAULT_VISIBILITY: str = os.getenv("YOUTUBE_DEFAULT_VISIBILITY", "unlisted")
+    YOUTUBE_DEFAULT_VISIBILITY: str = os.getenv("YOUTUBE_DEFAULT_VISIBILITY", "public")
 
     # ── Processing Settings ───────────────────────────────────────────────
     CONCURRENT_FRAGMENTS: int = int(os.getenv("CONCURRENT_FRAGMENTS", "4"))
