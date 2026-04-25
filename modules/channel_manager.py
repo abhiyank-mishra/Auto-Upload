@@ -68,6 +68,8 @@ def fetch_channel_videos(channel_url: str, max_videos: int = 100) -> list[dict]:
         "--dump-json",
         "--no-warnings",
         "--playlist-end", str(max_videos),
+        "--js-runtimes", "deno,node",
+        "--remote-components", "ejs:github",
     ]
     if os.path.exists("cookies.txt"):
         cmd.extend(["--cookies", "cookies.txt"])
@@ -172,7 +174,8 @@ def download_full_video(video_url: str, output_dir: str) -> str | None:
         "-o", output_template,
         "--no-playlist",
         "--concurrent-fragments", "4",
-        "--js-runtimes", "nodejs,deno",
+        "--js-runtimes", "deno,node",
+        "--remote-components", "ejs:github",
     ]
     if os.path.exists("cookies.txt"):
         cmd.extend(["--cookies", "cookies.txt"])
