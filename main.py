@@ -38,6 +38,10 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
+# Fix for yt-dlp failing when running under PM2 due to Node IPC channel mismatch
+if "NODE_CHANNEL_FD" in os.environ:
+    del os.environ["NODE_CHANNEL_FD"]
+
 # Project root
 PROJECT_ROOT = Path(__file__).resolve().parent
 
