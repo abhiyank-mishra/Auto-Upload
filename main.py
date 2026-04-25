@@ -175,7 +175,23 @@ def run_channel_pipeline(state: PipelineState):
 
     # Step 4: Convert each part to vertical Shorts + text overlay
     logger.info(f"\n  📱 Converting {total_parts} parts to vertical Shorts...")
+    logger.info("  ⚙️  Uploading will happen in parallel with processing...")
 
+    import threading
+    conversion_done = threading.Event()
+
+    def uploader_task():
+        while not conversion_done.is_set() or state.queue_size() > 0:
+            if state.queue_size() > 0:
+                drain_upload_queue(state)
+            else:
+                time.sleep(5)
+
+    uploader_thread = threading.Thread(target=uploader_task)
+    uploader_thread.daemon = True
+    uploader_thread.start()
+
+    converted_parts = []
     for part in parts:
         idx = part["index"]
         raw_path = part["path"]
@@ -198,6 +214,7 @@ def run_channel_pipeline(state: PipelineState):
 
         if result:
             part["shorts_path"] = result
+            converted_parts.append(part)
             # Clean up raw part to save disk
             try:
                 os.remove(raw_path)
@@ -207,6 +224,24 @@ def run_channel_pipeline(state: PipelineState):
             webhook.send_event("clip_processing_complete", "success",
                                video_url=video_url, clip_index=idx,
                                message=f"Part {idx}/{total_parts} converted")
+            
+            # IMMEDIATELY queue the part for parallel upload
+            queue_item = {
+                "video_id": video_id,
+                "video_url": video_url,
+                "clip_path": part["shorts_path"],
+                "clip_index": idx,
+                "total_parts": total_parts,
+                "title": f"{short_title} - Part {idx} #shorts",
+                "description": (
+                    f"{video_title} - Part {idx}/{total_parts}\n\n"
+                    f"#shorts #viral #trending #youtube\n"
+                ),
+                "tags": ["shorts", "viral", "trending", video_title[:30]],
+                "hashtags": ["#shorts", "#viral", "#trending"],
+            }
+            state.add_to_queue(queue_item)
+            logger.info(f"  📋 Queued part {idx} for parallel upload")
         else:
             webhook.send_event("clip_processing_complete", "error",
                                video_url=video_url, clip_index=idx,
@@ -214,32 +249,12 @@ def run_channel_pipeline(state: PipelineState):
                                error="FFmpeg conversion returned None")
             state.record_error()
 
-    # Step 5: Queue all converted parts
-    converted_parts = [p for p in parts if "shorts_path" in p]
-    logger.info(f"\n  📋 Queueing {len(converted_parts)} clips for upload...")
-
-    for part in converted_parts:
-        idx = part["index"]
-        short_title = video_title[:40] + ("..." if len(video_title) > 40 else "")
-
-        queue_item = {
-            "video_id": video_id,
-            "video_url": video_url,
-            "clip_path": part["shorts_path"],
-            "clip_index": idx,
-            "total_parts": total_parts,
-            "title": f"{short_title} - Part {idx} #shorts",
-            "description": (
-                f"{video_title} - Part {idx}/{total_parts}\n\n"
-                f"#shorts #viral #trending #youtube\n"
-            ),
-            "tags": ["shorts", "viral", "trending", video_title[:30]],
-            "hashtags": ["#shorts", "#viral", "#trending"],
-        }
-        state.add_to_queue(queue_item)
-
-    # Step 6: Upload queue with random delays
-    drain_upload_queue(state)
+    # Step 5: Wait for all uploads to finish
+    conversion_done.set()
+    logger.info(f"\n  ⏳ All {total_parts} parts processed. Waiting for background uploads to complete...")
+    
+    while uploader_thread.is_alive():
+        uploader_thread.join(timeout=1.0)
 
     # Mark video as processed
     state.mark_video_processed(video_id)
