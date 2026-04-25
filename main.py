@@ -173,6 +173,14 @@ def run_channel_pipeline(state: PipelineState):
                        video_url=video_url,
                        message=f"Split into {total_parts} parts")
 
+    # Free up space: delete full video IMMEDIATELY after splitting
+    try:
+        if os.path.exists(source_path):
+            os.remove(source_path)
+            logger.info("  🗑️  Original full video deleted to save space")
+    except OSError as e:
+        logger.warning(f"  ⚠️  Could not delete original video: {e}")
+
     # Step 4: Convert each part to vertical Shorts + text overlay
     logger.info(f"\n  📱 Converting {total_parts} parts to vertical Shorts...")
 
@@ -243,13 +251,6 @@ def run_channel_pipeline(state: PipelineState):
 
     # Mark video as processed
     state.mark_video_processed(video_id)
-
-    # Clean up source file
-    try:
-        os.remove(source_path)
-        logger.info("  🗑️  Source file cleaned up")
-    except OSError:
-        pass
 
     webhook.send_event("pipeline_complete", "success",
                        video_url=video_url,
