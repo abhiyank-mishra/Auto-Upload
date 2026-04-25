@@ -69,7 +69,7 @@ def _get_authenticated_service(credentials_path):
             f.write(creds.to_json())
         logger.info("  💾 OAuth token saved for future uploads")
 
-    return build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, credentials=creds)
+    return build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, credentials=creds, static_discovery=False)
 
 
 def _upload_single(youtube, video_path, title, description, tags, privacy_status):
