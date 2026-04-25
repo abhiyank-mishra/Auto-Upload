@@ -68,8 +68,10 @@ def fetch_channel_videos(channel_url: str, max_videos: int = 100) -> list[dict]:
         "--dump-json",
         "--no-warnings",
         "--playlist-end", str(max_videos),
-        url,
     ]
+    if os.path.exists("cookies.txt"):
+        cmd.extend(["--cookies", "cookies.txt"])
+    cmd.append(url)
 
     try:
         result = subprocess.run(
@@ -170,8 +172,11 @@ def download_full_video(video_url: str, output_dir: str) -> str | None:
         "-o", output_template,
         "--no-playlist",
         "--concurrent-fragments", "4",
-        video_url,
+        "--js-runtimes", "nodejs,deno",
     ]
+    if os.path.exists("cookies.txt"):
+        cmd.extend(["--cookies", "cookies.txt"])
+    cmd.append(video_url)
 
     logger.info(f"  ⬇️  Downloading full video...")
 

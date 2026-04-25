@@ -324,6 +324,18 @@ def drain_upload_queue(state: PipelineState):
                 state.pop_upload()
                 state.mark_uploaded(item, yt_url)
                 uploaded_count += 1
+
+                # Free up space: delete uploaded clip and its folder if empty
+                try:
+                    if os.path.exists(clip_path):
+                        os.remove(clip_path)
+                        logger.info(f"  🗑️  Deleted uploaded clip to save space")
+                    clip_dir = os.path.dirname(clip_path)
+                    if os.path.exists(clip_dir) and not os.listdir(clip_dir):
+                        os.rmdir(clip_dir)
+                        logger.info(f"  🗑️  Deleted empty video folder: {clip_dir}")
+                except Exception as e:
+                    logger.warning(f"  ⚠️  Could not clean up files: {e}")
             else:
                 logger.error(f"  ❌ Upload failed for part {clip_index}")
                 webhook.send_event("upload_failed", "error",
