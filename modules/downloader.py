@@ -39,7 +39,7 @@ def check_dependencies() -> dict[str, str | None]:
 def fetch_video_info(url: str) -> dict[str, Any]:
     """Fetch video metadata without downloading using yt-dlp."""
     logger.info("📡 Fetching video metadata...")
-    cmd = ["yt-dlp", "--dump-json", "--no-download", "--no-playlist", "--no-warnings", url]
+    cmd = ["yt-dlp", "--dump-json", "--no-download", "--no-playlist", "--no-warnings", "--js-runtimes", "nodejs,deno", url]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=60,
                                 encoding="utf-8", errors="replace")
@@ -205,6 +205,7 @@ def download_multi_clips(url, peaks, output_dir, video_info=None):
             "-f", "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best",
             "--merge-output-format", "mp4",
             "--concurrent-fragments", str(frags),
+            "--js-runtimes", "nodejs,deno",
             "-o", temp_video, "--newline", "--no-warnings", url
         ]
         p = subprocess.Popen(dl_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -285,6 +286,7 @@ def _try_segment_download(url, start, end, output_path):
         "--download-sections", section,
         "-f", "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best",
         "--merge-output-format", "mp4",
+        "--js-runtimes", "nodejs,deno",
         "-o", output_path, "--newline", "--no-warnings", url
     ]
     try:
@@ -314,6 +316,7 @@ def _download_and_trim(url, start, end, output_path):
             "-f", "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best",
             "--merge-output-format", "mp4",
             "--concurrent-fragments", str(frags),
+            "--js-runtimes", "nodejs,deno",
             "-o", temp_video, "--newline", "--no-warnings", url
         ]
         p = subprocess.Popen(dl_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
