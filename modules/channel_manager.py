@@ -169,8 +169,8 @@ def download_full_video(video_url: str, output_dir: str) -> str | None:
 
     cmd = [
         "yt-dlp",
-        "-f", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
-        "--merge-output-format", "mp4",
+        # Use pre-merged format (up to 720p) to avoid ffmpeg merge and save disk space
+        "-f", "best[ext=mp4]/best",
         "-o", output_template,
         "--no-playlist",
         "--concurrent-fragments", "4",
