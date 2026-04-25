@@ -23,7 +23,7 @@ def get_video_duration(video_path: str) -> float | None:
     try:
         cmd = [
             "ffprobe",
-            "-v", "quiet",
+            "-v", "error",
             "-print_format", "json",
             "-show_format",
             video_path,
@@ -37,8 +37,14 @@ def get_video_duration(video_path: str) -> float | None:
             dur_str = data.get("format", {}).get("duration")
             if dur_str:
                 return float(dur_str)
+            else:
+                logger.error(f"  ❌ ffprobe succeeded but 'duration' not found in output: {data}")
+        else:
+            logger.error(f"  ❌ ffprobe failed with code {result.returncode}: {result.stderr.strip()}")
+    except FileNotFoundError:
+        logger.error("  ❌ ffprobe not found. Is ffmpeg installed on this system?")
     except Exception as e:
-        logger.debug(f"ffprobe duration failed: {e}")
+        logger.error(f"  ❌ ffprobe duration failed with exception: {e}")
     return None
 
 
