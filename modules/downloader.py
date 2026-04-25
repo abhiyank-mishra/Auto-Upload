@@ -39,7 +39,7 @@ def check_dependencies() -> dict[str, str | None]:
 def fetch_video_info(url: str) -> dict[str, Any]:
     """Fetch video metadata without downloading using yt-dlp."""
     logger.info("📡 Fetching video metadata...")
-    cmd = ["yt-dlp", "--dump-json", "--no-download", "--no-playlist", "--no-warnings", "--js-runtimes", "deno,node", "--remote-components", "ejs:github"]
+    cmd = ["yt-dlp", "--dump-json", "--no-download", "--no-playlist", "--no-warnings", "--js-runtimes", "node", "--remote-components", "ejs:github"]
     if os.path.exists("cookies.txt"):
         cmd.extend(["--cookies", "cookies.txt"])
     cmd.append(url)
@@ -208,7 +208,7 @@ def download_multi_clips(url, peaks, output_dir, video_info=None):
             "-f", "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best",
             "--merge-output-format", "mp4",
             "--concurrent-fragments", str(frags),
-            "--js-runtimes", "deno,node",
+            "--js-runtimes", "node",
             "--remote-components", "ejs:github",
         ]
         if os.path.exists("cookies.txt"):
@@ -292,7 +292,7 @@ def _try_segment_download(url, start, end, output_path):
         "--download-sections", section,
         "-f", "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best",
         "--merge-output-format", "mp4",
-        "--js-runtimes", "deno,node",
+        "--js-runtimes", "node",
         "--remote-components", "ejs:github",
     ]
     if os.path.exists("cookies.txt"):
@@ -325,7 +325,7 @@ def _download_and_trim(url, start, end, output_path):
             "-f", "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best",
             "--merge-output-format", "mp4",
             "--concurrent-fragments", str(frags),
-            "--js-runtimes", "deno,node",
+            "--js-runtimes", "node",
             "--remote-components", "ejs:github",
         ]
         if os.path.exists("cookies.txt"):
